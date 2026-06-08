@@ -21,7 +21,13 @@ def load_model():
         from ultralytics import YOLO
         from ultralytics.nn.tasks import DetectionModel
         import torch
-        torch.serialization.add_safe_globals([DetectionModel])
+        import torch.nn as nn
+        torch.serialization.add_safe_globals([
+            DetectionModel,
+            nn.Sequential,
+            nn.ModuleList,
+            nn.ModuleDict,
+        ])
         model = YOLO('yolov8n.pt')
         print("✅ YOLOv8 model loaded!")
     except Exception as e:
