@@ -11,7 +11,7 @@ import numpy as np
 from PIL import Image
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 model = None
 
@@ -49,7 +49,6 @@ VOCAB_MAP = {
     'traffic light':    {'vi': 'đèn giao thông',        'phonetic': '/ˈtræfɪk laɪt/'},
     'fire hydrant':     {'vi': 'cột chữa cháy',         'phonetic': '/faɪər ˈhaɪdrənt/'},
     'stop sign':        {'vi': 'biển báo dừng',         'phonetic': '/stɒp saɪn/'},
-    'parking meter':    {'vi': 'đồng hồ đỗ xe',         'phonetic': '/ˈpɑːrkɪŋ ˈmiːtər/'},
     'bench':            {'vi': 'ghế băng',              'phonetic': '/bentʃ/'},
     'bird':             {'vi': 'chim',                  'phonetic': '/bɜːrd/'},
     'cat':              {'vi': 'mèo',                   'phonetic': '/kæt/'},
@@ -66,16 +65,9 @@ VOCAB_MAP = {
     'handbag':          {'vi': 'túi xách',              'phonetic': '/ˈhændbæɡ/'},
     'tie':              {'vi': 'cà vạt',                'phonetic': '/taɪ/'},
     'suitcase':         {'vi': 'vali',                  'phonetic': '/ˈsuːtkeɪs/'},
-    'frisbee':          {'vi': 'đĩa ném frisbee',       'phonetic': '/ˈfrɪzbiː/'},
-    'skis':             {'vi': 'ván trượt tuyết',       'phonetic': '/skiːz/'},
-    'snowboard':        {'vi': 'ván trượt tuyết',       'phonetic': '/ˈsnoʊbɔːrd/'},
     'sports ball':      {'vi': 'bóng thể thao',         'phonetic': '/spɔːrts bɔːl/'},
     'kite':             {'vi': 'diều',                  'phonetic': '/kaɪt/'},
-    'baseball bat':     {'vi': 'gậy bóng chày',         'phonetic': '/ˈbeɪsbɔːl bæt/'},
-    'baseball glove':   {'vi': 'găng tay bóng chày',   'phonetic': '/ˈbeɪsbɔːl ɡlʌv/'},
     'skateboard':       {'vi': 'ván trượt',             'phonetic': '/ˈskeɪtbɔːrd/'},
-    'surfboard':        {'vi': 'ván lướt sóng',         'phonetic': '/ˈsɜːrfbɔːrd/'},
-    'tennis racket':    {'vi': 'vợt tennis',            'phonetic': '/ˈtenɪs ˈrækɪt/'},
     'bottle':           {'vi': 'chai',                  'phonetic': '/ˈbɒtəl/'},
     'wine glass':       {'vi': 'ly rượu',               'phonetic': '/waɪn ɡlɑːs/'},
     'cup':              {'vi': 'cốc',                   'phonetic': '/kʌp/'},
@@ -119,6 +111,19 @@ VOCAB_MAP = {
     'toothbrush':       {'vi': 'bàn chải đánh răng',    'phonetic': '/ˈtuːθbrʌʃ/'},
 }
 
+# Fix CORS headers cho mọi request
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+# Handle OPTIONS preflight request
+@app.route('/detect', methods=['OPTIONS'])
+def detect_options():
+    return jsonify({'status': 'ok'}), 200
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({
@@ -127,7 +132,7 @@ def health():
         'message': 'Penny English YOLOv8 API'
     })
 
-@app.route('/detect', methods=['POST'])
+@app.route('/detect', methods=['POST', 'OPTIONS'])
 def detect():
     try:
         data = request.get_json()
