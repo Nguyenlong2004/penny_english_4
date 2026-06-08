@@ -9,7 +9,6 @@ import io
 import os
 import numpy as np
 from PIL import Image
-import torch
 
 app = Flask(__name__)
 CORS(app)
@@ -20,9 +19,9 @@ def load_model():
     global model
     try:
         from ultralytics import YOLO
+        from ultralytics.nn.tasks import DetectionModel
         import torch
-        # Fix PyTorch 2.6 weights_only issue
-        torch.serialization.add_safe_globals(['ultralytics.nn.tasks.DetectionModel'])
+        torch.serialization.add_safe_globals([DetectionModel])
         model = YOLO('yolov8n.pt')
         print("✅ YOLOv8 model loaded!")
     except Exception as e:
